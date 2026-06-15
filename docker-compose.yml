@@ -1,0 +1,56 @@
+services:
+  mongo:
+    image: mongo:latest
+    container_name: mongo-db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  auth-service:
+    build: ./auth-service
+    environment:
+      - PORT=5001
+      - MONGO_URI=mongodb://mongo:27017/auth_db
+      - JWT_SECRET=mysecretkey
+    depends_on:
+      - mongo
+
+  course-service:
+    build: ./course-service
+    environment:
+      - PORT=5002
+      - MONGO_URI=mongodb://mongo:27017/course_db
+    depends_on:
+      - mongo
+
+  instructor-service:
+    build: ./instructor-service
+    environment:
+      - PORT=5003
+      - MONGO_URI=mongodb://mongo:27017/instructor_db
+    depends_on:
+      - mongo
+
+  enrollment-service:
+    build: ./enrollment-service
+    environment:
+      - PORT=5004
+      - MONGO_URI=mongodb://mongo:27017/enrollment_db
+    depends_on:
+      - mongo
+
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+    depends_on:
+      - auth-service
+      - course-service
+      - instructor-service
+      - enrollment-service
+
+volumes:
+  mongo-data:
